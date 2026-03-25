@@ -1,0 +1,33 @@
+services:
+  db_eleicoes:
+    image: postgres:15
+    container_name: pg_eleicoes
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha_eleicoes_2026
+      POSTGRES_DB: db_eleicoes
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase_eleicoes
+    ports:
+      - "3001:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: db_eleicoes
+      MB_DB_PORT: 5432
+      MB_DB_USER: admin
+      MB_DB_PASS: senha_eleicoes_2026
+      MB_DB_HOST: db_eleicoes
+    restart: always
+    deploy:
+      resources:
+        limits:          # 2 espaços à frente de resources
+          memory: 2g     # 2 espaços à frente de limits
+    depends_on:
+      - db_eleicoes
