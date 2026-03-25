@@ -2,3 +2,4 @@ postgres_data/
 venv/
 __pycache__/
 *.pyc
+info-metabase
