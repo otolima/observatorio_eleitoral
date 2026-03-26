@@ -1,27 +1,29 @@
-# 🗳️ Observatório de Dados Eleitorais 2026
+# 🗳️ Observatório de Dados Eleitorais: Auditoria de Patrimônio 2026
 
-Este projeto implementa um pipeline de Engenharia de Dados completo para auditoria e análise de patrimônio de candidatos, utilizando a **Arquitetura de Medalhão** para transformar dados brutos em insights acionáveis.
+## 🎯 Objetivo
+Desenvolver um ecossistema de dados automatizado para identificar disparidades patrimoniais em candidatos eleitorais, processando mais de **460.000 registros** para sinalizar perfis com patrimônio superior a **R$ 10 milhões**.
 
-## 🎯 Objetivo do Projeto
-Identificar disparidades patrimoniais e automatizar o flagging (alerta) de candidatos com patrimônio superior a R$ 10 milhões, facilitando a auditoria cívica.
+## 🛠️ Stack Tecnológica (Engenharia & BI)
+- **Infraestrutura:** Docker & Docker Compose (Ambiente 100% conteinerizado).
+- **Banco de Dados:** PostgreSQL 15 (Arquitetura de Medalhão: Bronze, Silver, Gold).
+- **Linguagem:** Python 3.12 (Pandas para ETL, SQLAlchemy para persistência).
+- **Ambiente de Desenvolvimento:** VS Code, Venv (Ambiente Virtual) e Git para versionamento.
+- **Business Intelligence:** Metabase (Conectado via rede interna do Docker).
 
-## 🏗️ Arquitetura e Pipeline (ETL)
-O fluxo de dados segue o padrão de mercado:
-1.  **Bronze (Raw):** Ingestão dos dados brutos do TSE para o PostgreSQL.
-2.  **Silver (Cleaned):** Limpeza de tipos, tratamento de nulos e padronização.
-3.  **Gold (Analytics):** Geração de rankings e tabelas de auditoria prontas para BI.
+## 🏗️ Arquitetura do Pipeline (ETL)
+O projeto utiliza a **Medallion Architecture**, garantindo a linhagem e qualidade do dado:
+1. **Bronze (Raw):** Ingestão de CSVs brutos do TSE para o Postgres.
+2. **Silver (Cleaned):** Tratamento de tipos, limpeza de nulos e padronização de valores monetários via Python.
+3. **Gold (Analytics):** Script automatizado (`gerar_camada_gold.py`) que aplica regras de negócio e gera flags de auditoria (`flag_alerta`).
 
-## 🛠️ Tecnologias Utilizadas
-- **Infraestrutura:** Docker & Docker Compose (PostgreSQL 15 e Metabase).
-- **Linguagem:** Python 3.12 (Pandas para transformação, SQLAlchemy para conexão).
-- **Orquestração:** Scripts modulares para automação do pipeline Gold.
-- **Visualização:** Metabase conectado à camada Gold para dashboards em tempo real.
+## 📈 Principais Insights (Data Discovery)
+Através do pipeline, foi possível identificar:
+- **Total de registros analisados:** 463.580
+- **Candidatos em Alerta (> R$ 10M):** 638 (0,13% do total).
+- **Concentração de Riqueza:** Este grupo restrito detém aproximadamente **35% de todo o patrimônio declarado** no banco de dados.
 
-## 🚀 Como Executar
-1. Subir os containers: `sudo docker compose up -d`
-2. Ativar o ambiente: `source venv/bin/activate`
-3. Processar a Camada Gold: `python scripts/gerar_camada_gold.py`
-4. Acessar os Dashboards: `http://localhost:3001`
-
----
-*Projeto desenvolvido como parte do aprendizado prático em Engenharia de Dados.*
+## 🚀 Como Reproduzir
+1. Clone o repositório.
+2. Execute `sudo docker compose up -d` para subir o banco e o BI.
+3. Ative o venv e execute `python scripts/gerar_camada_gold.py`.
+4. Acesse o Dashboard em `localhost:3001`.
