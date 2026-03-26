@@ -1,38 +1,27 @@
-## 🛠️ Infraestrutura e Ferramentas
+# 🗳️ Observatório de Dados Eleitorais 2026
 
-O projeto utiliza um ambiente conteinerizado para garantir a reprodutibilidade dos dados:
+Este projeto implementa um pipeline de Engenharia de Dados completo para auditoria e análise de patrimônio de candidatos, utilizando a **Arquitetura de Medalhão** para transformar dados brutos em insights acionáveis.
 
-1. **IDE:** Visual Studio Code (VS Code) com extensões de Python e Docker.
-2. **Banco de Dados:** PostgreSQL 15 rodando em Docker, com persistência em volume local (`./postgres_data`).
-3. **BI / Visualização:** Metabase (Docker) conectado diretamente à camada **Gold** do banco.
-4. **Linguagem:** Python 3.12 (Pandas, SQLAlchemy, Requests).
+## 🎯 Objetivo do Projeto
+Identificar disparidades patrimoniais e automatizar o flagging (alerta) de candidatos com patrimônio superior a R$ 10 milhões, facilitando a auditoria cívica.
 
-### Como subir o ambiente:
-1. Instalar Docker e Docker Compose.
-2. Executar `sudo docker compose up -d`.
-3. Acessar o Metabase em `localhost:3000`.
+## 🏗️ Arquitetura e Pipeline (ETL)
+O fluxo de dados segue o padrão de mercado:
+1.  **Bronze (Raw):** Ingestão dos dados brutos do TSE para o PostgreSQL.
+2.  **Silver (Cleaned):** Limpeza de tipos, tratamento de nulos e padronização.
+3.  **Gold (Analytics):** Geração de rankings e tabelas de auditoria prontas para BI.
 
+## 🛠️ Tecnologias Utilizadas
+- **Infraestrutura:** Docker & Docker Compose (PostgreSQL 15 e Metabase).
+- **Linguagem:** Python 3.12 (Pandas para transformação, SQLAlchemy para conexão).
+- **Orquestração:** Scripts modulares para automação do pipeline Gold.
+- **Visualização:** Metabase conectado à camada Gold para dashboards em tempo real.
 
-### 📈 Camada de Visualização (Metabase)
+## 🚀 Como Executar
+1. Subir os containers: `sudo docker compose up -d`
+2. Ativar o ambiente: `source venv/bin/activate`
+3. Processar a Camada Gold: `python scripts/gerar_camada_gold.py`
+4. Acessar os Dashboards: `http://localhost:3001`
 
-Para a análise visual, foi integrado o **Metabase** via Docker. A principal vantagem desta abordagem é a conexão direta com o banco de dados via rede interna do Docker (`db_eleicoes`), garantindo segurança e performance.
-
-**Lógica de Dashboards implementada:**
-- **Filtro de Integridade:** Separação visual entre candidatos com dados "Normais" e "Suspeitos".
-- **KPIs de Auditoria:** Contagem de registros sinalizados pelo processo de ETL.
-- **Distribuição Partidária:** Análise de patrimônio médio por legenda, utilizando apenas dados validados.
-
-
-📝 Registro Final de Configuração (README.md)
-
-Adicione este trecho ao seu arquivo de documentação para encerrar o capítulo de "Infraestrutura de Visualização":
-
-    Status da Camada de BI: Operacional ✅
-
-        Ferramenta: Metabase (Dockerizado)
-
-        Endpoint: http://localhost:3001
-
-        Persistência de Metadados: Integrada ao volume do PostgreSQL (db_eleicoes), garantindo que dashboards e perguntas não sejam perdidos ao reiniciar os containers.
-
-        Resolução de Conflitos: Porta ajustada para 3001 para evitar colisões no Host Ubuntu.
+---
+*Projeto desenvolvido como parte do aprendizado prático em Engenharia de Dados.*

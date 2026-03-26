@@ -1,5 +1,22 @@
-postgres_data/
+# --- Python ---
+# Ignora o ambiente virtual (nunca deve ir para o Git)
 venv/
 __pycache__/
-*.pyc
-info-metabase
+*.py[cod]
+
+# --- Banco de Dados e Infra ---
+# Ignora os dados físicos do Postgres (podem ser gigabytes)
+postgres_data/
+
+# --- Dados e Arquivos Grandes ---
+# Ignora os arquivos CSV e XLSX brutos (o Git não é para armazenar dados pesados)
+data/*.csv
+data/*.xlsx
+
+# --- IDE e Sistema ---
+.vscode/
+.DS_Store
+*.log
+
+# --- Pastas extra ---
+Documentação-Manual
