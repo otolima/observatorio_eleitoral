@@ -1,59 +1,59 @@
 import pandas as pd
-from sqlalchemy import create_engine
-import sys
+from sqlalchemy import create_engine, text
+import os
+from dotenv import load_dotenv
 
-def executar_pipeline_auditoria():
-    """
-    Script de Produção: Transforma a Camada Gold de Ranking em uma Camada de Auditoria.
-    Objetivo: Identificar candidatos com patrimônio acima de R$ 10 milhões.
-    """
+load_dotenv()
+DB_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+
+def gerar_camada_gold():
+    engine = create_engine(DB_URL)
+    
+    print("📥 Extraindo dados da Silver para processar a Gold...")
+    # Lemos as colunas que a Silver preparou
+    query = "SELECT * FROM silver.candidatos_bens"
+    
     try:
-        # 1. Configuração da Conexão (Ajuste conforme seu ambiente Docker)
-        DATABASE_URL = 'postgresql://admin:senha_eleicoes_2026@localhost:5432/db_eleicoes'
-        engine = create_engine(DATABASE_URL)
-        
-        print("🔗 Conectando ao PostgreSQL...")
-
-        # 2. EXTRAÇÃO: Lendo da tabela Gold existente
-        # Usamos o nome completo com o esquema 'gold'
-        query = 'SELECT * FROM gold.ranking_patrimonio_gold'
         df = pd.read_sql(query, engine)
-        
-        if df.empty:
-            print("⚠️ A tabela gold.ranking_patrimonio_gold está vazia. Verifique o banco.")
-            return
-
-        print(f"📊 {len(df)} registros carregados para análise.")
-
-        # 3. TRANSFORMAÇÃO: Regra de Negócio de Auditoria
-        # Definimos o limite de corte (10 Milhões)
-        LIMITE_ALERTA = 10000000 
-        COLUNA_VALOR = 'patrimonio_total' # Nome confirmado via DBeaver
-        
-        # Criando a flag de alerta (SIM para > 10M, NÃO para os demais)
-        df['flag_alerta'] = df[COLUNA_VALOR].fillna(0).apply(
-            lambda x: 'SIM' if x >= LIMITE_ALERTA else 'NÃO'
-        )
-
-        # 4. CARGA: Salvando a nova tabela de Auditoria no esquema 'gold'
-        # O parâmetro schema='gold' garante que ela fique no lugar certo
-        df.to_sql('analise_auditoria_gold', 
-                  engine, 
-                  schema='gold', 
-                  if_exists='replace', 
-                  index=False)
-        
-        # Resumo para o log
-        total_suspeitos = len(df[df['flag_alerta'] == 'SIM'])
-        print("-" * 30)
-        print("✅ PIPELINE CONCLUÍDO COM SUCESSO!")
-        print(f"📂 Tabela gerada: gold.analise_auditoria_gold")
-        print(f"🚩 Candidatos com Alerta (>10M): {total_suspeitos}")
-        print("-" * 30)
-
     except Exception as e:
-        print(f"❌ ERRO CRÍTICO NO PIPELINE: {e}")
-        sys.exit(1)
+        print(f"❌ Erro ao ler a Camada Silver: {e}")
+        return
+
+    # Normaliza nomes de colunas para minúsculo
+    df.columns = [col.lower() for col in df.columns]
+    
+    print(f"✅ Colunas detectadas: {list(df.columns)}")
+
+    # 1. Filtra dados FIÉIS (Ranking) e ANOMALIAS (Auditoria)
+    df_fiel = df[df['is_outlier'] == False].copy()
+    df_erros = df[df['is_outlier'] == True].copy()
+    
+    # 2. Agrupamento do Ranking Principal
+    colunas_agrup = ['sq_candidato', 'nm_candidato', 'sg_partido', 'sg_uf', 'ds_cargo']
+    
+    print("⚖️ Agrupando patrimônio por candidato...")
+    df_gold = df_fiel.groupby(colunas_agrup).agg({
+        'vr_bem_candidato': 'sum'
+    }).reset_index()
+
+    # 3. Renomeação final para o BI
+    df_gold = df_gold.rename(columns={'vr_bem_candidato': 'patrimonio_total'})
+    df_gold['grande_patrimonio'] = df_gold['patrimonio_total'] > 10_000_000
+
+    # 4. Carga final na Gold
+    print("📤 Carregando tabelas na Camada Gold...")
+    with engine.connect() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS gold;"))
+        conn.commit()
+    
+    # Salva o Ranking de Candidatos
+    df_gold.to_sql('ranking_patrimonial', engine, schema='gold', if_exists='replace', index=False)
+    
+    # Salva o Log de Anomalias (Bilionários suspeitos)
+    df_erros.to_sql('log_anomalias_tse', engine, schema='gold', if_exists='replace', index=False)
+    
+    print("✅ Camada GOLD finalizada com sucesso!")
+    print(f"📊 Ranking: {len(df_gold)} registros | 🚩 Anomalias: {len(df_erros)} registros")
 
 if __name__ == "__main__":
-    executar_pipeline_auditoria()
+    gerar_camada_gold()

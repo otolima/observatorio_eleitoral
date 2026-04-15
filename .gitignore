@@ -1,22 +1,25 @@
-# --- Python ---
-# Ignora o ambiente virtual (nunca deve ir para o Git)
+# --- Ambientes Virtuais ---
 venv/
+.anaconda/
 __pycache__/
 *.py[cod]
 
 # --- Banco de Dados e Infra ---
-# Ignora os dados físicos do Postgres (podem ser gigabytes)
 postgres_data/
 
+# --- Segurança ---
+.env
+
 # --- Dados e Arquivos Grandes ---
-# Ignora os arquivos CSV e XLSX brutos (o Git não é para armazenar dados pesados)
 data/*.csv
 data/*.xlsx
+*.zip
 
 # --- IDE e Sistema ---
 .vscode/
 .DS_Store
 *.log
+.ipynb_checkpoints/
 
-# --- Pastas extra ---
-Documentação-Manual
+# --- Pasta de Manuais (Privada até a finalização) ---
+Documentação-Manual/
