@@ -4,7 +4,7 @@ services:
     container_name: pg_eleicoes
     environment:
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: senha_eleicoes_2026
+      POSTGRES_PASSWORD: senha_eleicoes_2024
       POSTGRES_DB: db_eleicoes
     ports:
       - "5432:5432"
