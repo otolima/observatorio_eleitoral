@@ -14,28 +14,30 @@ Os dados utilizados são públicos, extraídos do **Portal de Dados Abertos do T
 - **BI & Visualização:** Metabase (Dashboarding e Data Discovery).
 - **Acesso Remoto:** ngrok (Exposição segura via túnel HTTP).
 
+---
+
 ## 🏗️ Arquitetura do Pipeline (Medallion Architecture)
-O projeto garante a linhagem e qualidade do dado através de três camadas:
+O projeto garante a linhagem e qualidade do dado através de três camadas lógicas:
 1.  **Bronze (Raw):** Ingestão direta dos arquivos CSV do TSE via `scripts/ingestao_bronze.py`.
-2.  **Silver (Cleaned):** Processamento via `scripts/processamento_silver.py`. Nesta fase, resolvemos divergências de esquemas (ex: normalização da coluna `sg_ue` para `sg_uf`) e realizamos a limpeza monetária de strings para float.
+2.  **Silver (Cleaned):** Processamento via `scripts/processamento_silver.py`. Resolvemos divergências de esquemas (ex: normalização de `sg_ue` para `sg_uf`) e realizamos a limpeza monetária de strings para float.
 3.  **Gold (Curated):** Consolidação final via `scripts/gerar_camada_gold.py`. Os dados são bifurcados em:
-    * `ranking_patrimonial`: Dados higienizados para o Dashboard.
-    * `log_anomalias_tse`: Registros de auditoria para inspeção de erros na fonte.
+    * `gold.ranking_patrimonial`: Dados higienizados e otimizados para o Dashboard.
+    * `gold.log_anomalias_tse`: Registros de auditoria para inspeção de erros na fonte.
 
-## 🛡️ Tratamento de Qualidade e Integridade (Data Quality)
-Um diferencial crítico deste projeto é o **Filtro de Integridade**. Identificamos que o sistema do TSE contém erros de preenchimento (ex: vereadores declarando patrimônios de R$ 10 bilhões devido a erros de casas decimais). 
-- **Regra de Negócio:** Candidatos com soma de bens > **R$ 500 milhões** são movidos para uma tabela de auditoria (`log_anomalias_tse`), protegendo a média e a escala visual do Dashboard principal.
+---
 
-## 📈 Resultados da Auditoria (Dados Consolidados)
-- **Total de registros de bens processados:** ~912.620
-- **Candidatos únicos no Ranking:** 296.063
-- **Candidatos sinalizados (> R$ 10M):** 622
-- **Anomalias Detectadas:** 13 casos isolados (bilionários suspeitos isolados para garantir a fidedignidade do BI).
+## 🛡️ Qualidade e Resiliência (Data Quality & Disaster Recovery)
 
-## 🚀 Como Reproduzir
-1. **Inicie a Infraestrutura:** `docker-compose up -d`
-2. **Configure o ambiente Python:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
+### Filtro de Integridade
+Identificamos que o sistema do TSE contém erros de preenchimento (ex: candidatos declarando patrimônios de bilhões por erro de digitação). 
+- **Regra de Negócio:** Candidatos com soma de bens > **R$ 500 milhões** são movidos para a tabela `gold.log_anomalias_tse`, protegendo a fidedignidade das médias do Dashboard.
+
+### Garantia de Resiliência
+Implementamos uma rotina de validação de integridade para garantir que os dados analíticos sejam recuperáveis:
+1. **Backup Automático:** O script `scripts/backup_db.sh` gera dumps SQL completos (~685MB).
+2. **Ambiente Isolado:** O script `scripts/validate_backup.py` instancia um banco temporário no Docker.
+3. **Restore Test:** Simula a recuperação total do sistema e audita a volumetria da camada **GOLD**.
+
+**Comando de Segurança:**
+```bash
+sudo bash scripts/backup_db.sh && sudo python3 scripts/validate_backup.py

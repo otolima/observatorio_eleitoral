@@ -22,7 +22,7 @@ services:
       MB_DB_DBNAME: db_eleicoes
       MB_DB_PORT: 5432
       MB_DB_USER: admin
-      MB_DB_PASS: senha_eleicoes_2026
+      MB_DB_PASS: senha_eleicoes_2024
       MB_DB_HOST: db_eleicoes
     restart: always
     deploy:

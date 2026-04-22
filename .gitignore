@@ -4,11 +4,15 @@ venv/
 __pycache__/
 *.py[cod]
 
+# Ignorar backups pesados
+Backup-Banco/*.sql
+
+# Ignorar arquivos de configuração sensíveis
+.env
+
 # --- Banco de Dados e Infra ---
 postgres_data/
 
-# --- Segurança ---
-.env
 
 # --- Dados e Arquivos Grandes ---
 data/*.csv
@@ -23,3 +27,6 @@ data/*.xlsx
 
 # --- Pasta de Manuais (Privada até a finalização) ---
 Documentação-Manual/
+
+# --- Pasta dos notebooks
+notebooks/
