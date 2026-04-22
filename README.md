@@ -95,5 +95,5 @@ python3 scripts/gerar_camada_gold.py
 ---
 ## 👤 Autor
 **Otoniel Nunes**
-- [LinkedIn](www.linkedin.com/in/otoniel-lima)
-- [Portfólio/GitHub](https://github.com/otolima/observatorio_eleitoral)
+* [LinkedIn](https://www.linkedin.com/in/otoniel-lima)
+* [Portfólio/GitHub](https://github.com/otolima/observatorio_eleitoral)
